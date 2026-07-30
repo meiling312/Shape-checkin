@@ -1,0 +1,18 @@
+{
+  "name": "塑形打卡 · 3个月居家计划",
+  "short_name": "塑形打卡",
+  "description": "居家塑形训练打卡工具，瘦腿·瘦腰·瘦手臂",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f5f7",
+  "theme_color": "#ff6b35",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
