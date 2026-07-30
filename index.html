@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#ff6b35">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="塑形打卡">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>塑形打卡 · 3个月居家计划</title>
+<style>
+  :root{
+    --bg:#f4f5f7; --card:#ffffff; --ink:#1f2430; --sub:#8a90a0;
+    --main:#ff6b35; --main2:#ff9a3d; --blue:#1565c0; --green:#2e7d32;
+    --red:#e53935; --line:#eceef2; --radius:18px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg); color:var(--ink);
+    max-width:480px; margin:0 auto; padding-bottom:78px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .head{
+    position:sticky; top:0; z-index:20; padding:18px 18px 12px;
+    background:linear-gradient(135deg,var(--main),var(--main2));
+    color:#fff; border-radius:0 0 22px 22px;
+    box-shadow:0 6px 18px rgba(255,107,53,.25);
+  }
+  .head .date{font-size:13px; opacity:.92;}
+  .head .title{font-size:20px; font-weight:700; margin-top:2px;}
+  .head .streak{display:inline-flex; align-items:center; gap:5px; margin-top:10px;
+    background:rgba(255,255,255,.2); padding:5px 12px; border-radius:999px; font-size:13px;}
+  .sec{display:none; padding:16px 14px 4px;}
+  .sec.on{display:block;}
+  .card{background:var(--card); border-radius:var(--radius); padding:16px;
+    box-shadow:0 4px 14px rgba(20,25,40,.06); margin-bottom:14px;}
+  .label{font-size:12px; color:var(--sub); margin-bottom:6px;}
+  .big{font-size:26px; font-weight:700;}
+  .row{display:flex; align-items:center; gap:12px;}
+  .pill{display:inline-block; padding:4px 11px; border-radius:999px; font-size:12px; font-weight:600;}
+  .p-leg{background:#fff0e6; color:#d35400;}
+  .p-waist{background:#e8f0ff; color:var(--blue);}
+  .p-arm{background:#eafaf0; color:var(--green);}
+  .p-cardio{background:#fff7e0; color:#b8860b;}
+  .p-rest{background:#f0f0f3; color:var(--sub);}
+  .p-walk{background:#eafaf7; color:teal;}
+  .btn{
+    display:block; width:100%; border:none; border-radius:14px; padding:15px;
+    font-size:16px; font-weight:700; color:#fff; background:linear-gradient(135deg,var(--main),var(--main2));
+    box-shadow:0 6px 16px rgba(255,107,53,.3); margin-top:14px; cursor:pointer;
+    transition:transform .08s;
+  }
+  .btn:active{transform:scale(.98);}
+  .btn.done{background:#e9ecef; color:#9aa0ac; box-shadow:none;}
+  .btn.ghost{background:#fff; color:var(--main); border:2px solid var(--main); box-shadow:none;}
+  .btn.small{padding:10px 14px; font-size:14px; display:inline-block; width:auto; margin-top:10px;}
+  .vbtn{display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:#f7f8fa; border-radius:12px; padding:12px 14px; margin-top:10px; text-decoration:none; color:var(--ink);}
+  .vbtn:active{background:#eef0f3;}
+  .vbtn .name{font-size:14px; font-weight:600;}
+  .vbtn .go{font-size:12px; color:var(--main);}
+  .week-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px;}
+  .wday{background:var(--card); border-radius:12px; padding:10px 4px; text-align:center; box-shadow:0 3px 10px rgba(20,25,40,.05);}
+  .wday.today{outline:2px solid var(--main); }
+  .wday .d{font-size:11px; color:var(--sub);}
+  .wday .ic{font-size:20px; margin:4px 0;}
+  .wday .ck{font-size:11px; color:var(--green); font-weight:700; height:14px;}
+  .cal{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-top:8px;}
+  .cday{aspect-ratio:1; border-radius:10px; background:#f0f1f4; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; font-size:13px; color:#444; position:relative;}
+  .cday.checked{background:linear-gradient(135deg,var(--main),var(--main2)); color:#fff;}
+  .cday.period::after{content:""; position:absolute; top:4px; right:4px; width:6px; height:6px; border-radius:50%; background:var(--red);}
+  .cday.dim{color:#c4c8d0;}
+  .cday.today{outline:2px solid var(--blue);}
+  .form input{width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:15px; margin-top:8px;}
+  .form .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .stat-row{display:flex; gap:10px;}
+  .stat{flex:1; background:var(--card); border-radius:14px; padding:12px; text-align:center; box-shadow:0 3px 10px rgba(20,25,40,.05);}
+  .stat .n{font-size:20px; font-weight:700;}
+  .stat .t{font-size:11px; color:var(--sub); margin-top:2px;}
+  .tabbar{position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px;
+    display:flex; background:#fff; box-shadow:0 -4px 18px rgba(20,25,40,.08);
+    padding:6px 0 calc(6px + env(safe-area-inset-bottom)); z-index:30;}
+  .tab{flex:1; text-align:center; padding:6px 0; color:var(--sub); font-size:11px; cursor:pointer;}
+  .tab .ic{font-size:20px; display:block;}
+  .tab.on{color:var(--main); font-weight:700;}
+  .muted{color:var(--sub); font-size:12px; line-height:1.6;}
+  .quote{font-size:14px; line-height:1.6; color:#5a6072; font-style:italic;}
+  .switch{position:relative; width:48px; height:28px; background:#d8dbe2; border-radius:999px; transition:.2s;}
+  .switch.on{background:var(--red);}
+  .switch::after{content:""; position:absolute; top:3px; left:3px; width:22px; height:22px; background:#fff; border-radius:50%; transition:.2s; box-shadow:0 1px 3px rgba(0,0,0,.2);}
+  .switch.on::after{left:23px;}
+  .install-tip{background:#fffbe9; border:1px solid #ffe08a; color:#8a6d00; font-size:13px; padding:10px 14px;
+    border-radius:12px; margin:0 14px 12px; display:none; line-height:1.5;}
+  svg.trend{width:100%; height:160px; display:block;}
+  .legend{display:flex; gap:14px; font-size:11px; color:var(--sub); margin-top:4px;}
+  .legend i{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:middle;}
+  .empty{text-align:center; color:var(--sub); font-size:13px; padding:24px 0;}
+  .sync-status{font-size:13px; font-weight:600; padding:10px 0; color:var(--sub);}
+  .sync-status.ok{color:var(--green);}
+  .sync-status.err{color:var(--red);}
+  .code{font-family:monospace; font-size:12px; background:#f0f1f4; padding:6px 10px; border-radius:8px; word-break:break-all; display:inline-block; max-width:100%;}
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div class="date" id="headDate">—</div>
+  <div class="title" id="headTitle">今日训练</div>
+  <div class="streak">🔥 连续打卡 <b id="streakNum">0</b> 天</div>
+</div>
+
+<div class="install-tip" id="installTip">📲 iOS 用户：点击底部「分享」图标 →「添加到主屏幕」，即可像 App 一样常驻桌面使用。开启「同步」后，手机电脑数据自动互通。</div>
+
+<!-- 今日 -->
+<section class="sec on" id="sec-today">
+  <div class="card" id="todayCard"></div>
+  <div class="card">
+    <div class="label">今日一句</div>
+    <div class="quote" id="quote">—</div>
+  </div>
+  <div class="card" id="periodCard">
+    <div class="row" style="justify-content:space-between;">
+      <div>
+        <div style="font-weight:700;">🩸 经期模式</div>
+        <div class="muted">开启后今日改为低强度（散步+拉伸）</div>
+      </div>
+      <div class="switch" id="periodSwitch"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 周计划 -->
+<section class="sec" id="sec-week">
+  <div class="card">
+    <div class="label">本周计划（标准版 · 每周 4 练）</div>
+    <div class="week-grid" id="weekGrid"></div>
+  </div>
+  <div class="card" id="weekDetail"></div>
+</section>
+
+<!-- 打卡 -->
+<section class="sec" id="sec-checkin">
+  <div class="stat-row" style="margin:0 0 14px;">
+    <div class="stat"><div class="n" id="stTotal">0</div><div class="t">累计打卡</div></div>
+    <div class="stat"><div class="n" id="stStreak">0</div><div class="t">当前连续</div></div>
+    <div class="stat"><div class="n" id="stRate">0%</div><div class="t">本月出勤</div></div>
+  </div>
+  <div class="card">
+    <div class="label">本月打卡日历（点日期可补卡 / 取消）</div>
+    <div class="cal" id="calGrid"></div>
+    <div class="muted" style="margin-top:8px;">🔥 已完成训练　·　🔴 标记经期　·　🔵 今天</div>
+  </div>
+</section>
+
+<!-- 记录 -->
+<section class="sec" id="sec-record">
+  <div class="stat-row" style="margin:0 0 14px;">
+    <div class="stat"><div class="n" id="rcW">—</div><div class="t">最新体重kg</div></div>
+    <div class="stat"><div class="n" id="rcWaist">—</div><div class="t">腰围cm</div></div>
+    <div class="stat"><div class="n" id="rcArm">—</div><div class="t">臂围cm</div></div>
+  </div>
+  <div class="card form">
+    <div class="label">新增记录（每周 1 次即可）</div>
+    <input id="mDate" type="date">
+    <div class="grid2">
+      <input id="mWeight" type="number" step="0.1" placeholder="体重 kg">
+      <input id="mWaist" type="number" step="0.1" placeholder="腰围 cm">
+      <input id="mArm" type="number" step="0.1" placeholder="臂围 cm">
+      <input id="mThigh" type="number" step="0.1" placeholder="大腿围 cm">
+    </div>
+    <button class="btn" id="mSave">保存记录</button>
+  </div>
+  <div class="card">
+    <div class="label">趋势（体重 / 腰围）</div>
+    <div id="trendBox"><div class="empty">暂无数据，先添加一条记录</div></div>
+    <div class="legend">
+      <span><i style="background:var(--main)"></i>体重</span>
+      <span><i style="background:var(--blue)"></i>腰围</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="label">历史记录</div>
+    <div id="mList"></div>
+    <button class="btn ghost" id="mClear" style="margin-top:12px;">清空全部数据</button>
+  </div>
+</section>
+
+<!-- 视频 -->
+<section class="sec" id="sec-video">
+  <div class="card">
+    <div class="label">🦵 瘦腿 / 女团腿</div>
+    <div id="vid-leg"></div>
+  </div>
+  <div class="card">
+    <div class="label">💪 瘦腰 / 核心 / 马甲线</div>
+    <div id="vid-waist"></div>
+  </div>
+  <div class="card">
+    <div class="label">💪 瘦手臂 / 拜拜肉</div>
+    <div id="vid-arm"></div>
+  </div>
+  <div class="card">
+    <div class="label">🔥 全身有氧</div>
+    <div id="vid-cardio"></div>
+  </div>
+</section>
+
+<!-- 设置/同步 -->
+<section class="sec" id="sec-settings">
+  <div class="card form">
+    <div class="label">① GitHub Token（仅存本机浏览器，不上传第三方）</div>
+    <input id="setToken" type="password" placeholder="ghp_... 或 github_pat_...">
+    <div class="muted" style="margin-top:6px;">需要 <b>gist</b> 权限的细粒度 Token。电脑和手机填同一个 Token。</div>
+    <button class="btn small" id="saveToken">保存 Token</button>
+  </div>
+  <div class="card form">
+    <div class="label">② 同步数据 ID（Gist ID）</div>
+    <input id="setGist" type="text" placeholder="留空则在下次同步时自动新建">
+    <div class="muted" style="margin-top:6px;">首次在某台设备同步会自动创建；把这里显示的 ID 填到另一台设备，两边即共享同一份数据。</div>
+    <button class="btn small" id="saveGist">保存 ID</button>
+    <div style="margin-top:10px;">当前 Gist ID：<br><span class="code" id="curGist">未创建</span>
+      <button class="btn small" id="copyGist" style="margin-left:8px;">复制</button></div>
+  </div>
+  <div class="card">
+    <div class="label">③ 同步状态</div>
+    <div class="sync-status" id="syncStatus">未配置，当前仅存本机</div>
+    <button class="btn" id="syncNow">立即同步（拉取+推送）</button>
+    <button class="btn ghost" id="logout" style="margin-top:10px;">退出同步（清除 Token）</button>
+  </div>
+  <div class="card">
+    <div class="label">使用说明</div>
+    <div class="muted" style="line-height:1.8;">
+      1. 在 GitHub 生成 Token（勾选 <b>gist</b> 权限），填到 ①。<br>
+      2. 点「立即同步」→ 自动创建云档案（② 会显示 Gist ID）。<br>
+      3. 在另一台设备填相同 Token + 相同 Gist ID，数据即互通。<br>
+      4. 之后每次打卡/记录都会自动同步，无需手动。<br>
+      <span style="color:#b8860b;">⚠️ Token 只在你自己的浏览器里，用于直连 GitHub；不用时可随时撤销。</span>
+    </div>
+  </div>
+</section>
+
+<div class="tabbar">
+  <div class="tab on" data-t="today"><span class="ic">💪</span>今日</div>
+  <div class="tab" data-t="week"><span class="ic">📋</span>周计划</div>
+  <div class="tab" data-t="checkin"><span class="ic">🔥</span>打卡</div>
+  <div class="tab" data-t="record"><span class="ic">📊</span>记录</div>
+  <div class="tab" data-t="video"><span class="ic">▶️</span>视频</div>
+  <div class="tab" data-t="settings"><span class="ic">⚙️</span>同步</div>
+</div>
+
+<script>
+/* ---------- 训练计划 ---------- */
+const PLAN = {
+  0:{part:'休息',icon:'🛌',cls:'p-rest',name:'休息日',time:'—',type:'rest',desc:'泡沫轴 / 拉伸放松，让身体恢复'},
+  1:{part:'腿',icon:'🦵',cls:'p-leg',name:'腿日',time:'20–25 min',type:'video',desc:'瘦腿跟练 + 拉伸',tip:'夹臀、膝盖朝脚尖方向，不追求快',
+     videos:[['帕梅拉 10min 瘦腿（大腿内侧）· 新手友好','https://www.bilibili.com/list/ml3465424434?oid=116440002723985&bvid=BV1wvd2B3EPv'],
+       ['25min 零基础女生居家塑形线','https://www.bilibili.com/video/BV1ofSSBfEQE/']]},
+  2:{part:'腰',icon:'💪',cls:'p-waist',name:'腰腹日',time:'15–20 min',type:'video',desc:'核心瘦腰跟练',tip:'收腹优先，腰酸就改死虫式',
+     videos:[['10min 核心训练（激活深层核心、不伤腰）','https://www.bilibili.com/video/BV1c7erzQEvc/'],
+       ['周六野核心合集（站立瘦腰+马甲线）','https://www.bilibili.com/video/BV137411Z79p/'],
+       ['欧阳春晓 沙漏腰马甲线（进阶）','https://www.youtube.com/watch?v=CPuoQMSNxVw']]},
+  3:{part:'轻活动',icon:'🚶',cls:'p-walk',name:'轻活动日',time:'低强度',type:'walk',desc:'饭后快走 30 min 或睡前拉伸',tip:'不出汗也算打卡，关键是不中断'},
+  4:{part:'臂',icon:'💪',cls:'p-arm',name:'手臂日',time:'10–15 min',type:'video',desc:'瘦手臂跟练',tip:'可用两瓶水当哑铃，练肱三头肌',
+     videos:[['10min 手臂塑形（需水瓶/哑铃）','https://www.bilibili.com/list/1109822091?oid=116568885305179&bvid=BV1tA5S6sEHw'],
+       ['睡前 5min 瘦手臂（躺床可练）','https://www.bilibili.com/video/BV1U7KK62EnT/']]},
+  5:{part:'有氧',icon:'🔥',cls:'p-cardio',name:'全身有氧',time:'25–30 min',type:'video',desc:'燃脂舞 / 帕梅拉全身 / 快走',tip:'心率上来才有效，没力气就快走',
+     videos:[['女团燃脂舞（B站搜）','https://search.bilibili.com/all?keyword=女团燃脂舞零基础'],
+       ['帕梅拉全身（B站搜）','https://search.bilibili.com/all?keyword=帕梅拉全身15min'],
+       ['周六野全身燃脂（B站搜）','https://search.bilibili.com/all?keyword=周六野全身燃脂']]},
+  6:{part:'组合',icon:'🏋️',cls:'p-leg',name:'组合日',time:'25 min',type:'video',desc:'腿 + 腰组合 或 全身塑形',tip:'把两部位视频连起来练',
+     videos:[['帕梅拉 10min 瘦腿','https://www.bilibili.com/list/ml3465424434?oid=116440002723985&bvid=BV1wvd2B3EPv'],
+       ['10min 核心训练','https://www.bilibili.com/video/BV1c7erzQEvc/']]}
+};
+const WEEKNAME=['周日','周一','周二','周三','周四','周五','周六'];
+const VIDEOS={
+  leg:[['帕梅拉 10min 瘦腿（大腿内侧）','https://www.bilibili.com/list/ml3465424434?oid=116440002723985&bvid=BV1wvd2B3EPv'],
+       ['25min 零基础女生居家塑形线','https://www.bilibili.com/video/BV1ofSSBfEQE/']],
+  waist:[['10min 核心训练（不伤腰）','https://www.bilibili.com/video/BV1c7erzQEvc/'],
+       ['周六野核心合集（站立瘦腰）','https://www.bilibili.com/video/BV137411Z79p/'],
+       ['周六野 一周见效马甲线（进阶）','https://www.bilibili.com/video/BV1jx411Q72A/'],
+       ['欧阳春晓 沙漏腰马甲线','https://www.youtube.com/watch?v=CPuoQMSNxVw']],
+  arm:[['10min 手臂塑形（水瓶/哑铃）','https://www.bilibili.com/list/1109822091?oid=116568885305179&bvid=BV1tA5S6sEHw'],
+       ['睡前 5min 瘦手臂','https://www.bilibili.com/video/BV1U7KK62EnT/'],
+       ['帕梅拉 8min 紧致手臂+副乳（B站搜）','https://search.bilibili.com/all?keyword=帕梅拉紧致手臂副乳'],
+       ['欧阳春晓 10min 瘦手臂（B站搜）','https://search.bilibili.com/all?keyword=欧阳春晓瘦手臂']],
+  cardio:[['女团燃脂舞（B站搜）','https://search.bilibili.com/all?keyword=女团燃脂舞零基础'],
+       ['KPOP 有氧（B站搜）','https://search.bilibili.com/all?keyword=KPOP有氧燃脂'],
+       ['帕梅拉全身 15min（B站搜）','https://search.bilibili.com/all?keyword=帕梅拉全身15min']]
+};
+const QUOTES=[
+  '前 21 天最难的是「打开视频」，熬过去身体会自己想要动。',
+  '宁可每天 10 分钟坚持 90 天，不要每周猛练 1 天然后躺一周。',
+  '体重不动甚至略升都正常——肌肉比脂肪重，围度变小才是真胜利。',
+  '经期不称体重，水肿会骗你；照常散步拉伸，不掉链子。',
+  '想「举高高」时，先去散步 15 分钟，冲动会自己退潮。',
+  '今天练的不是腿，是 3 个月后的自己。',
+  '动作标准 > 汗如雨下，慢就是快。'
+];
+
+/* ---------- 存储 + 云同步 ---------- */
+const LS_CK='fc_checkins', LS_PD='fc_period', LS_MS='fc_measures', LS_START='fc_start', LS_TOKEN='fc_token', LS_GIST='fc_gist';
+const GIST_FILE='shape-data.json';
+let token=localStorage.getItem(LS_TOKEN)||'';
+let gistId=localStorage.getItem(LS_GIST)||'';
+let pushTimer=null;
+
+function load(k,def){try{return JSON.parse(localStorage.getItem(k))??def;}catch(e){return def;}}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v)); schedulePush();}
+function schedulePush(){ if(!token)return; clearTimeout(pushTimer); pushTimer=setTimeout(doPush,700); }
+function ghHeaders(){return {'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'};}
+function getAll(){return {checkins,period,measures,start:load(LS_START,'')};}
+function setAll(o){ if(!o)return; checkins=o.checkins||{}; period=o.period||{}; measures=o.measures||[]; if(o.start) save(LS_START,o.start); }
+function timeStr(){const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
+function setStatus(t,cls){const e=document.getElementById('syncStatus'); e.textContent=t; e.className='sync-status'+(cls?(' '+cls):'');}
+
+let checkins=load(LS_CK,{});
+let period=load(LS_PD,{});
+let measures=load(LS_MS,[]);
+if(!localStorage.getItem(LS_START)) save(LS_START, dateKey(new Date()));
+
+async function gistGet(){
+  const r=await fetch('https://api.github.com/gists/'+gistId,{headers:ghHeaders()});
+  if(!r.ok) throw new Error('读取 '+r.status);
+  const j=await r.json();
+  const c=j.files&&j.files[GIST_FILE]?j.files[GIST_FILE].content:null;
+  return c?JSON.parse(c):null;
+}
+async function gistPut(data){
+  const content=JSON.stringify(data,null,2);
+  if(gistId){
+    const r=await fetch('https://api.github.com/gists/'+gistId,{method:'PATCH',headers:ghHeaders(),body:JSON.stringify({files:{[GIST_FILE]:{content}}})});
+    if(!r.ok) throw new Error('写入 '+r.status);
+  }else{
+    const r=await fetch('https://api.github.com/gists',{method:'POST',headers:ghHeaders(),body:JSON.stringify({public:false,files:{[GIST_FILE]:{content}}})});
+    if(!r.ok) throw new Error('创建 '+r.status);
+    const j=await r.json(); gistId=j.id; localStorage.setItem(LS_GIST,gistId);
+  }
+}
+async function doPush(){ if(!token)return; try{ setStatus('同步中…'); await gistPut(getAll()); setStatus('已同步 ↑ '+timeStr(),'ok'); refreshGistUI(); }
+  catch(e){ setStatus('同步失败：'+e.message,'err'); } }
+async function doPull(){ if(!token)return; try{ setStatus('拉取中…'); const d=await gistGet(); if(d){ setAll(d); renderAll(); } setStatus('已同步 ↓ '+timeStr(),'ok'); refreshGistUI(); }
+  catch(e){ setStatus('拉取失败：'+e.message,'err'); } }
+async function doSync(){ if(!token){setStatus('请先填写 Token','err');return;} await doPull(); await doPush(); }
+
+function refreshGistUI(){ document.getElementById('curGist').textContent=gistId||'未创建'; document.getElementById('setGist').value=gistId; }
+
+/* ---------- 工具 ---------- */
+function dateKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function isChecked(k){return !!checkins[k];}
+function isPeriod(k){return !!period[k];}
+
+/* ---------- 今日 ---------- */
+function renderToday(){
+  const now=new Date(); const k=dateKey(now); const wd=now.getDay(); const p=PLAN[wd]; const checked=isChecked(k); const pd=isPeriod(k);
+  let html='';
+  if(pd && p.type!=='rest'){
+    html=`<div class="row" style="justify-content:space-between;">
+        <div><div class="label">今日安排</div><span class="pill p-walk">🩸 经期模式 · 低强度</span></div>
+        <div style="font-size:34px;">🚶</div></div>
+      <div style="margin-top:12px;font-size:15px;line-height:1.7;">散步 20 min + 腰腹拉伸 + 热敷。不称体重（水肿失真），照常打卡保持习惯。</div>`;
+  }else{
+    html=`<div class="row" style="justify-content:space-between;">
+        <div><div class="label">今日安排 · ${WEEKNAME[wd]}</div><span class="pill ${p.cls}">${p.icon} ${p.name}</span></div>
+        <div style="font-size:34px;">${p.icon}</div></div>
+      <div style="margin-top:12px;font-size:15px;line-height:1.7;"><b>${p.desc}</b><br><span class="muted">⏱ ${p.time}　·　${p.tip||''}</span></div>`;
+    if(p.videos){ html+='<div style="margin-top:10px;">'; p.videos.forEach(v=>{html+=`<a class="vbtn" href="${v[1]}" target="_blank" rel="noopener"><span class="name">${v[0]}</span><span class="go">▶ 跟练</span></a>`;}); html+='</div>'; }
+  }
+  html+=`<button class="btn ${checked?'done':''}" id="checkBtn">${checked?'✅ 今日已打卡':'完成今日训练 · 打卡'}</button>`;
+  document.getElementById('todayCard').innerHTML=html;
+  document.getElementById('checkBtn').onclick=()=>{checkins[k]=!checkins[k]; if(!checkins[k])delete checkins[k]; save(LS_CK,checkins); renderToday(); renderCheckin(); renderWeek();};
+  const sw=document.getElementById('periodSwitch'); sw.className='switch'+(pd?' on':'');
+  sw.onclick=()=>{period[k]=!period[k]; if(!period[k])delete period[k]; save(LS_PD,period); renderToday(); renderWeek(); renderCheckin();};
+  document.getElementById('quote').textContent=QUOTES[now.getDate()%QUOTES.length];
+  document.getElementById('streakNum').textContent=calcStreak();
+}
+function calcStreak(){ let s=0; const d=new Date(); if(!isChecked(dateKey(d))) d.setDate(d.getDate()-1); while(isChecked(dateKey(d))){s++; d.setDate(d.getDate()-1);} return s; }
+
+/* ---------- 周计划 ---------- */
+function renderWeek(){
+  const now=new Date(); const todayWd=now.getDay(); const grid=document.getElementById('weekGrid'); grid.innerHTML='';
+  for(let i=0;i<7;i++){ const p=PLAN[i]; const k=weekDateKey(now,i); const ck=isChecked(k)?'✅':'';
+    const el=document.createElement('div'); el.className='wday'+(i===todayWd?' today':'');
+    el.innerHTML=`<div class="d">${WEEKNAME[i].replace('周','')}</div><div class="ic">${p.icon}</div><div class="ck">${ck}</div>`;
+    el.onclick=()=>showWeekDetail(i); grid.appendChild(el); }
+  showWeekDetail(todayWd);
+}
+function weekDateKey(now,wd){ const d=new Date(now); d.setDate(now.getDate()-now.getDay()+wd); return dateKey(d); }
+function showWeekDetail(wd){ const p=PLAN[wd];
+  let h=`<div class="row" style="justify-content:space-between;"><div><span class="pill ${p.cls}">${p.icon} ${p.name}</span></div><div class="muted">${WEEKNAME[wd]} · ${p.time}</div></div>
+    <div style="margin-top:10px;font-size:14px;line-height:1.7;">${p.desc}${p.tip?'<br><span class="muted">'+p.tip+'</span>':''}</div>`;
+  if(p.videos){ h+='<div style="margin-top:8px;">'; p.videos.forEach(v=>{h+=`<a class="vbtn" href="${v[1]}" target="_blank" rel="noopener"><span class="name">${v[0]}</span><span class="go">▶</span></a>`;}); h+='</div>'; }
+  document.getElementById('weekDetail').innerHTML=h;
+}
+
+/* ---------- 打卡日历 ---------- */
+function renderCheckin(){
+  const now=new Date(); const y=now.getFullYear(), m=now.getMonth(); const first=new Date(y,m,1); const startWd=first.getDay();
+  const days=new Date(y,m+1,0).getDate(); const grid=document.getElementById('calGrid'); grid.innerHTML='';
+  ['日','一','二','三','四','五','六'].forEach(w=>{ const h=document.createElement('div'); h.className='cday dim'; h.style.background='transparent'; h.style.boxShadow='none'; h.textContent=w; grid.appendChild(h); });
+  for(let i=0;i<startWd;i++){const e=document.createElement('div');e.className='cday dim';e.style.background='transparent';grid.appendChild(e);}
+  const tk=dateKey(now);
+  for(let d=1;d<=days;d++){ const k=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const e=document.createElement('div'); e.className='cday'+(isChecked(k)?' checked':'')+(isPeriod(k)?' period':'')+(k===tk?' today':''); e.textContent=d;
+    e.onclick=()=>{ if(isChecked(k))delete checkins[k]; else checkins[k]=true; save(LS_CK,checkins); renderCheckin(); renderToday(); renderWeek(); }; grid.appendChild(e); }
+  let total=0; for(const k in checkins) if(checkins[k])total++;
+  document.getElementById('stTotal').textContent=total; document.getElementById('stStreak').textContent=calcStreak();
+  let md=0,mc=0; for(let d=1;d<=days;d++){const k=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); md++; if(checkins[k])mc++;}
+  document.getElementById('stRate').textContent=Math.round(mc/md*100)+'%';
+}
+
+/* ---------- 记录 ---------- */
+function renderRecord(){
+  document.getElementById('mDate').value=dateKey(new Date());
+  measures.sort((a,b)=>a.date<b.date?-1:1);
+  const last=measures[measures.length-1];
+  document.getElementById('rcW').textContent=last?last.weight:'—';
+  document.getElementById('rcWaist').textContent=last?last.waist:'—';
+  document.getElementById('rcArm').textContent=last?last.arm:'—';
+  const list=document.getElementById('mList');
+  if(measures.length===0){list.innerHTML='<div class="empty">还没有记录</div>';}
+  else{ list.innerHTML=measures.slice().reverse().map(m=>`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px;"><b>${m.date}</b><span class="muted">${m.weight}kg · 腰${m.waist||'-'} · 臂${m.arm||'-'} · 腿${m.thigh||'-'}</span></div>`).join(''); }
+  if(measures.length>=1){ document.getElementById('trendBox').innerHTML=trendSVG(measures); }
+}
+function trendSVG(data){
+  const W=440,H=160,pad=28; const ws=data.map(d=>+d.weight).filter(v=>!isNaN(v)); const wa=data.map(d=>+d.waist).filter(v=>!isNaN(v));
+  if(ws.length===0) return '<div class="empty">体重数据不足</div>';
+  const all=ws.concat(wa); let min=Math.min(...all), max=Math.max(...all); if(min===max){min-=1;max+=1;}
+  const x=i=>pad+(W-2*pad)*(i/Math.max(1,data.length-1)); const y=v=>H-pad-(H-2*pad)*((v-min)/(max-min));
+  function line(arr,color){ if(arr.length===0)return''; let pts=arr.map((v,i)=>x(i)+','+y(v)).join(' '); if(arr.length===1)pts=pad+','+y(arr[0])+' '+(W-pad)+','+y(arr[0]); return `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round"/>`; }
+  let dots=''; ws.forEach((v,i)=>{dots+=`<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="#ff6b35"/>`;});
+  const grid=[min,(min+max)/2,max].map(v=>{const yy=y(v);return `<line x1="${pad}" y1="${yy}" x2="${W-pad}" y2="${yy}" stroke="#eee" stroke-width="1"/><text x="2" y="${yy+4}" font-size="10" fill="#aaa">${v.toFixed(1)}</text>`;}).join('');
+  return `<svg class="trend" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${grid}${line(ws,'#ff6b35')}${line(wa,'#1565c0')}${dots}</svg>`;
+}
+
+/* ---------- 视频 ---------- */
+function renderVideos(){ const map={leg:'vid-leg',waist:'vid-waist',arm:'vid-arm',cardio:'vid-cardio'};
+  for(const key in map){ const box=document.getElementById(map[key]); box.innerHTML='';
+    VIDEOS[key].forEach(v=>{ const a=document.createElement('a'); a.className='vbtn'; a.href=v[1]; a.target='_blank'; a.rel='noopener'; a.innerHTML=`<span class="name">${v[0]}</span><span class="go">▶ 打开</span>`; box.appendChild(a); }); } }
+
+/* ---------- Tab ---------- */
+const tabs=document.querySelectorAll('.tab');
+tabs.forEach(t=>t.onclick=()=>{
+  tabs.forEach(x=>x.classList.remove('on')); t.classList.add('on');
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  document.getElementById('sec-'+t.dataset.t).classList.add('on');
+  document.getElementById('headTitle').textContent={today:'今日训练',week:'本周计划',checkin:'打卡日历',record:'我的记录',video:'跟练视频',settings:'同步设置'}[t.dataset.t];
+  if(t.dataset.t==='record') renderRecord();
+  if(t.dataset.t==='settings') refreshGistUI();
+});
+
+/* ---------- 记录表单 ---------- */
+document.getElementById('mSave').onclick=()=>{
+  const date=document.getElementById('mDate').value||dateKey(new Date());
+  const m={date, weight:parseFloat(document.getElementById('mWeight').value)||null, waist:parseFloat(document.getElementById('mWaist').value)||null, arm:parseFloat(document.getElementById('mArm').value)||null, thigh:parseFloat(document.getElementById('mThigh').value)||null};
+  if(!m.weight&&!m.waist&&!m.arm&&!m.thigh){alert('至少填一项');return;}
+  const i=measures.findIndex(x=>x.date===date); if(i>=0)measures[i]=m; else measures.push(m);
+  save(LS_MS,measures); renderRecord();
+  document.getElementById('mWeight').value='';document.getElementById('mWaist').value='';document.getElementById('mArm').value='';document.getElementById('mThigh').value='';
+  alert('已保存 ✓');
+};
+document.getElementById('mClear').onclick=()=>{ if(confirm('确定清空全部打卡 / 记录 / 经期数据？此操作不可恢复。')){ checkins={};period={};measures=[]; save(LS_CK,checkins);save(LS_PD,period);save(LS_MS,measures); renderAll(); } };
+
+/* ---------- 同步设置事件 ---------- */
+document.getElementById('saveToken').onclick=()=>{ token=document.getElementById('setToken').value.trim(); localStorage.setItem(LS_TOKEN,token); setStatus(token?'Token 已保存，点「立即同步」开始':'已清除','ok'); if(token)doSync(); };
+document.getElementById('saveGist').onclick=()=>{ gistId=document.getElementById('setGist').value.trim(); localStorage.setItem(LS_GIST,gistId); refreshGistUI(); setStatus('Gist ID 已保存','ok'); };
+document.getElementById('copyGist').onclick=()=>{ if(gistId&&navigator.clipboard)navigator.clipboard.writeText(gistId).then(()=>alert('已复制 Gist ID')); };
+document.getElementById('syncNow').onclick=()=>doSync();
+document.getElementById('logout').onclick=()=>{ if(confirm('清除本机 Token 与 Gist ID？（云端数据保留）')){ token=''; gistId=''; localStorage.removeItem(LS_TOKEN); localStorage.removeItem(LS_GIST); refreshGistUI(); setStatus('已退出同步，仅存本机',''); } };
+
+/* ---------- 初始化 ---------- */
+function renderAll(){renderToday();renderWeek();renderCheckin();renderVideos();renderRecord();}
+const now=new Date();
+document.getElementById('headDate').textContent=now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 · '+WEEKNAME[now.getDay()];
+renderAll();
+if(token){ setStatus('已配置，正在拉取…'); doPull(); } else { refreshGistUI(); }
+
+/* iOS 安装提示 */
+if(/iPhone|iPad|iPod/.test(navigator.userAgent) && !window.navigator.standalone){ document.getElementById('installTip').style.display='block'; }
+
+/* PWA */
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+</script>
+</body>
+</html>
