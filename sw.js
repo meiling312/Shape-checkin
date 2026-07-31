@@ -1,30 +1,15 @@
-// Service Worker for 塑形打卡 PWA — offline cache
-const CACHE = 'shape-v1';
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.webmanifest',
-  './icon.svg'
-];
-
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(ASSETS).catch(() => {}))
-  );
+// 本文件不再被 index.html 注册。
+// 仅作兜底：若手机上仍有旧版 Service Worker 在运行，加载即自动卸载，
+// 避免它用残血缓存导致黑屏。
+self.addEventListener('install', function () {
   self.skipWaiting();
 });
-
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
-});
-
-self.addEventListener('fetch', e => {
-  e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request))
+self.addEventListener('activate', function (event) {
+  event.waitUntil(
+    self.registration.unregister().then(function () {
+      return caches.keys().then(function (keys) {
+        return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+      });
+    })
   );
 });
